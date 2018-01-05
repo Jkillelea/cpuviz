@@ -31,12 +31,12 @@ impl Cpu {
     /// Return the number of jiffies and the amount of time elapsed since the last measurement.
     pub fn measure(&mut self) -> (u64, Duration) { // returns numer of jiffies, time since last measurement
         let now = Instant::now();
-        let last_jiffies = self.cpu_handle.total;
+        let last_jiffies = self.total() - self.idle();
         unsafe {
             super::gtop::glibtop_get_cpu(&mut self.cpu_handle); // update number of jiffies
         }
         let time_diff = now - self.last_time;
-        let jiffy_diff = self.cpu_handle.total - last_jiffies;
+        let jiffy_diff = self.total() - self.idle() - last_jiffies;
         self.last_time = now; // update time. jiffies already updated by call to glibtop_get_cpu
         (jiffy_diff, time_diff)
     }
