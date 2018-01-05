@@ -1,0 +1,2 @@
+# rustfmt needs its own config file of course
+max_width = 140
