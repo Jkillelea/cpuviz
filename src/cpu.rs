@@ -41,6 +41,30 @@ impl Cpu {
         (jiffy_diff, time_diff)
     }
 
+    pub fn total(&self) -> u64 {
+        self.cpu_handle.total
+    }
+    pub fn flags(&self) -> u64 {
+        self.cpu_handle.flags
+    }
+    pub fn user(&self) -> u64 {
+        self.cpu_handle.user
+    }
+    pub fn nice(&self) -> u64 {
+        self.cpu_handle.nice
+    }
+    pub fn sys(&self) -> u64 {
+        self.cpu_handle.sys
+    }
+    pub fn idle(&self) -> u64 {
+        self.cpu_handle.idle
+    }
+    pub fn iowait(&self) -> u64 {
+        self.cpu_handle.iowait
+    }
+    pub fn irq(&self) -> u64 {
+        self.cpu_handle.irq
+    }
     pub fn frequency(&self) -> u64 {
         self.cpu_handle.frequency
     }
