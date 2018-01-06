@@ -20,30 +20,32 @@ impl Cpu {
 
     /// Instantiate a new Cpu. Calls glibtop_init and glibtop_close when dropped
     pub fn new() -> Cpu {
+        let mut cpu = Cpu {
+            last_time:      Instant::now(),
+            cpu_handle:     unsafe {mem::zeroed()},
+            glibtop_handle: None,
+        };
         unsafe {
-            let mut cpu = Cpu {
-                last_time:      Instant::now(),
-                cpu_handle:     mem::zeroed(),
-                glibtop_handle: None,
-            };
             super::gtop::glibtop_init();
             super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle);
-            return cpu
         }
+        cpu.measure(); // inital measurement
+        return cpu
     }
 
     /// Create a new object with a handle to a glibtop object.
     /// `glibtop_close` is called when all references to the handle are dropped accross the entire scope of the program.
     pub fn with_handle(h: Arc<GLibTopHandle>) -> Cpu {
+        let mut cpu = Cpu {
+            last_time:      Instant::now(),
+            cpu_handle:     unsafe {mem::zeroed()},
+            glibtop_handle: Some(h),
+        };
         unsafe {
-            let mut cpu = Cpu {
-                last_time:      Instant::now(),
-                cpu_handle:     mem::zeroed(),
-                glibtop_handle: Some(h),
-            };
             super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle);
-            return cpu
         }
+        cpu.measure(); // inital measurement
+        return cpu
     }
 
     /// Return the number of jiffies and the amount of time elapsed since the last measurement.
