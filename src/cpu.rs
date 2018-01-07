@@ -8,7 +8,8 @@ use super::percent_usage::PercentUsage; // trait
 
 const N_CPUS: u32 = 4;
 
-/// Keep the state of the CPU: Holds a handle to a glibtop_cpu struct and a recording of the last time a measurement was taken
+/// Keep the state of the CPU: Holds a handle to a glibtop_cpu struct, a recording of the last time a measurement was taken,
+/// and an `Option<Arc<GLibTopHandle>>` to determine when to call `glibtop_init()` and `glibtop_close()`.
 pub struct Cpu {
     last_time:      Instant,
     cpu_handle:     super::gtop::glibtop_cpu,
@@ -16,12 +17,12 @@ pub struct Cpu {
 }
 
 impl Cpu {
-    /// Is this type of device available on this platform? Yes, a CPU is always available.
+    /// Is this type of device available on this platform? Always returns `true`, since a CPU is always available.
     pub fn is_available() -> bool {
         true // we always have a cpu
     }
 
-    /// Instantiate a new Cpu. Calls glibtop_init and glibtop_close when dropped
+    /// Instantiate a new Cpu. Calls `glibtop_init()` and `glibtop_close()` when dropped
     pub fn new() -> Cpu {
         let mut cpu = Cpu {
             last_time:      Instant::now(),
@@ -37,7 +38,7 @@ impl Cpu {
     }
 
     /// Create a new object with a handle to a glibtop object.
-    /// `glibtop_close` is called when all references to the handle are dropped accross the entire scope of the program.
+    /// `glibtop_close()` is called when all references to the handle are dropped accross the entire scope of the program.
     pub fn with_handle(h: Arc<GLibTopHandle>) -> Cpu {
         let mut cpu = Cpu {
             last_time:      Instant::now(),
@@ -105,7 +106,7 @@ impl PercentUsage for Cpu {
 }
 
 impl Drop for Cpu {
-    /// Calls glibtop_close at the moment, might want to move this to something reference counted.
+    /// If the cpu struct was instantated with Cpu::new(), this will call `glibtop_close()`.
     fn drop(&mut self) {
         if self.glibtop_handle.is_none() { // if opening and closing glibtop manually
             unsafe {
