@@ -2,8 +2,6 @@
 name    = "cpuviz"
 version = "0.0.0"
 authors = ["Jacob Killelea <jkillelea@protonmail.ch>"]
-# links   = "gtop-2.0"
-# build   = "build.rs"
 
 [features]
 # default = ["generate_bindings"] # generate new bindings to libgtop2
