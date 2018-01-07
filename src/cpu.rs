@@ -4,6 +4,9 @@ use std::time::{Instant, Duration};
 use std::mem;
 use std::sync::Arc;
 use super::GLibTopHandle;
+use super::percent_usage::PercentUsage; // trait
+
+const N_CPUS: u32 = 4;
 
 /// Keep the state of the CPU: Holds a handle to a glibtop_cpu struct and a recording of the last time a measurement was taken
 pub struct Cpu {
@@ -62,6 +65,7 @@ impl Cpu {
         (jiffy_diff, time_diff)
     }
 
+    /// Returns the last reported value from the glibtop_cpu struct. Only updates when Cpu::measure() is called.
     pub fn total(&self) -> u64 {
         self.cpu_handle.total
     }
@@ -89,14 +93,15 @@ impl Cpu {
     pub fn frequency(&self) -> u64 {
         self.cpu_handle.frequency
     }
+}
 
-    // pub fn load_percent(&mut self) {
-    //     // (number of processors) * (proc_times2 - proc_times1) * 100 / (float) (total_cpu_usage2 - total_cpu_usage1)
-    //     let prev_total_usage = self.cpu_handle.total;
-    //     self.measure();
-    //     let now_total_usage = self.cpu_handle.total;
-    //
-    // }
+impl PercentUsage for Cpu {
+    fn percent_usage(&mut self) -> f64 {
+        let (j, d) = self.measure(); // elapsed jiffies and elapsed time
+        let j = j as f64;
+        let d = float_seconds(d);
+        j/(100.0 * (N_CPUS as f64) * d) // dividing by d gives an answer between 0 and 400. Divide by 100*N_CPUS to bring it between 0 and 1.0
+    }
 }
 
 impl Drop for Cpu {
@@ -108,4 +113,11 @@ impl Drop for Cpu {
             }
         }
     }
+}
+
+// convert std::time::Duration to a floating point number of seconds
+fn float_seconds(t: Duration) -> f64 {
+    let s = t.as_secs();      // number of seconds
+    let n = t.subsec_nanos(); // nanoseconds
+    (s as f64) + ((n as f64) * 1e-9)
 }

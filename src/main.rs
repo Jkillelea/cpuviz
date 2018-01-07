@@ -4,8 +4,10 @@ use std::sync::Arc;
 
 mod cpu;
 mod glibtop_handle;
+mod percent_usage;
 pub use cpu::Cpu;
 pub use glibtop_handle::GLibTopHandle;
+pub use percent_usage::PercentUsage;
 
 mod gtop {
     #![allow(non_upper_case_globals)]
@@ -26,7 +28,6 @@ fn main() {
     let mut cpu = cpu::Cpu::with_handle(gtop_handle.clone());
     for _ in 0..100 {
         thread::sleep(Duration::from_secs(1));
-        let (j, _) = cpu.measure();
-        println!("{:?}", j);
+        println!("{:?}", cpu.percent_usage());
     }
 }
