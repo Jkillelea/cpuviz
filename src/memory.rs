@@ -4,13 +4,15 @@ use super::gtop;
 use super::GLibTopHandle;
 use super::percent_usage::PercentUsage;
 
+/// A handle to a `glibtop_mem` struct and an `Option<Arc<GLibTopHandle>>` to determine when `glibtop_init()`
+/// and `glibtop_close()` should be called
 pub struct Memory {
     gtop_memory: gtop::glibtop_mem,
     handle: Option<Arc<GLibTopHandle>>
 }
 
 impl Memory {
-    /// Always returns true, since we always have RAM
+    /// Always returns true, since we (should) always have RAM
     pub fn is_available() -> bool {
         true // we always have RAM
     }
@@ -20,12 +22,10 @@ impl Memory {
     pub fn new() -> Memory {
         let mut m = Memory {
             handle: None,
-            gtop_memory: unsafe {mem::zeroed()}
+            gtop_memory: unsafe { mem::zeroed() }
         };
-        unsafe {
-            gtop::glibtop_init();
-            gtop::glibtop_get_mem(&mut m.gtop_memory);
-        }
+        unsafe { gtop::glibtop_init(); }
+        m.measure();
         return m
     }
 
@@ -34,11 +34,9 @@ impl Memory {
     pub fn with_handle(h: Arc<GLibTopHandle>) -> Memory {
         let mut m = Memory {
             handle: Some(h),
-            gtop_memory: unsafe {mem::zeroed()}
+            gtop_memory: unsafe { mem::zeroed() }
         };
-        unsafe {
-            gtop::glibtop_get_mem(&mut m.gtop_memory);
-        }
+        m.measure();
         return m
     }
 
@@ -50,40 +48,40 @@ impl Memory {
     }
 
     /// Expose fields from the glibtop_mem struct. Not updated unless `Memory::measure()` is called
-    // pub flags: guint64,
     pub fn flags(&self) -> u64 {
+        // pub flags: guint64,
         self.gtop_memory.flags
     }
-    // pub total: guint64,
     pub fn total(&self) -> u64 {
+        // pub total: guint64,
         self.gtop_memory.total
     }
-    // pub used: guint64,
     pub fn used(&self) -> u64 {
+        // pub used: guint64,
         self.gtop_memory.used
     }
-    // pub free: guint64,
     pub fn free(&self) -> u64 {
+        // pub free: guint64,
         self.gtop_memory.free
     }
-    // pub shared: guint64,
     pub fn shared(&self) -> u64 {
+        // pub shared: guint64,
         self.gtop_memory.shared
     }
-    // pub buffer: guint64,
     pub fn buffer(&self) -> u64 {
+        // pub buffer: guint64,
         self.gtop_memory.buffer
     }
-    // pub cached: guint64,
     pub fn cached(&self) -> u64 {
+        // pub cached: guint64,
         self.gtop_memory.cached
     }
-    // pub user: guint64,
     pub fn user(&self) -> u64 {
+        // pub user: guint64,
         self.gtop_memory.user
     }
-    // pub locked: guint64,
     pub fn locked(&self) -> u64 {
+        // pub locked: guint64,
         self.gtop_memory.locked
     }
 
@@ -95,7 +93,8 @@ impl PercentUsage for Memory {
         let m     = self.gtop_memory;
         let total = m.total as f64;
         let user  = m.user as f64;
-        user/total // same number that gnome-system-monitor reports
+        user/total // Same number that gnome-system-monitor reports. However, they round to the 0.001 place.
+                   // I might be missing something somewhere
     }
 }
 
