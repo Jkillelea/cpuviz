@@ -26,13 +26,13 @@ impl Cpu {
     pub fn new() -> Cpu {
         let mut cpu = Cpu {
             last_time:      Instant::now(),
-            cpu_handle:     unsafe {mem::zeroed()},
+            cpu_handle:     unsafe { mem::zeroed() },
             glibtop_handle: None,
         };
         unsafe {
             super::gtop::glibtop_init();
-            super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle);
-        }
+            super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle); // because the first thing measure() does is store
+        }                                                      // the previous value, we need to call glibtop_get_cpu explicitly here.
         cpu.measure(); // inital measurement
         return cpu
     }
@@ -42,12 +42,12 @@ impl Cpu {
     pub fn with_handle(h: Arc<GLibTopHandle>) -> Cpu {
         let mut cpu = Cpu {
             last_time:      Instant::now(),
-            cpu_handle:     unsafe {mem::zeroed()},
+            cpu_handle:     unsafe { mem::zeroed() },
             glibtop_handle: Some(h),
         };
         unsafe {
-            super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle);
-        }
+            super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle); // because the first thing measure() does is store
+        }                                                      // the previous value, we need to call glibtop_get_cpu explicitly here.
         cpu.measure(); // inital measurement
         return cpu
     }
@@ -98,17 +98,17 @@ impl Cpu {
 
 impl PercentUsage for Cpu {
     fn percent_usage(&mut self) -> f64 {
-        let (j, d) = self.measure(); // elapsed jiffies and elapsed time
+        let (j, d) = self.measure(); // Elapsed jiffies and elapsed time
         let j = j as f64;
         let d = float_seconds(d);
-        j/(100.0 * (N_CPUS as f64) * d) // dividing by d gives an answer between 0 and 400. Divide by 100*N_CPUS to bring it between 0 and 1.0
-    }
+        j/(100.0 * (N_CPUS as f64) * d) // Dividing by d gives an answer between 0 and 400.
+    }                                   // Divide by 100*N_CPUS to bring it between 0 and 1.0
 }
 
 impl Drop for Cpu {
     /// If the cpu struct was instantated with Cpu::new(), this will call `glibtop_close()`.
     fn drop(&mut self) {
-        if self.glibtop_handle.is_none() { // if opening and closing glibtop manually
+        if self.glibtop_handle.is_none() { // opening and closing glibtop manually
             unsafe {
                 super::gtop::glibtop_close();
             }
