@@ -6,10 +6,12 @@ mod cpu;
 mod memory;
 mod glibtop_handle;
 mod percent_usage;
+mod util;
 pub use cpu::Cpu;
 pub use memory::Memory;
 pub use glibtop_handle::GLibTopHandle;
 pub use percent_usage::PercentUsage;
+use util::*;
 
 mod gtop {
     #![allow(non_upper_case_globals)]
