@@ -3,6 +3,7 @@
 use std::time::{Instant, Duration};
 use std::mem;
 use std::sync::Arc;
+use super::gtop;
 use super::GLibTopHandle;
 use super::percent_usage::PercentUsage; // trait
 
@@ -12,7 +13,7 @@ const N_CPUS: u32 = 4;
 /// and an `Option<Arc<GLibTopHandle>>` to determine when to call `glibtop_init()` and `glibtop_close()`.
 pub struct Cpu {
     last_time:      Instant,
-    cpu_handle:     super::gtop::glibtop_cpu,
+    cpu_handle:     gtop::glibtop_cpu,
     glibtop_handle: Option<Arc<GLibTopHandle>> // if None, glibtop will be opened and closed manually in new() and drop()
 }
 
@@ -30,8 +31,8 @@ impl Cpu {
             glibtop_handle: None,
         };
         unsafe {
-            super::gtop::glibtop_init();
-            super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle); // because the first thing measure() does is store
+            gtop::glibtop_init();
+            gtop::glibtop_get_cpu(&mut cpu.cpu_handle); // because the first thing measure() does is store
         }                                                      // the previous value, we need to call glibtop_get_cpu explicitly here.
         cpu.measure(); // inital measurement
         return cpu
@@ -46,7 +47,7 @@ impl Cpu {
             glibtop_handle: Some(h),
         };
         unsafe {
-            super::gtop::glibtop_get_cpu(&mut cpu.cpu_handle); // because the first thing measure() does is store
+            gtop::glibtop_get_cpu(&mut cpu.cpu_handle); // because the first thing measure() does is store
         }                                                      // the previous value, we need to call glibtop_get_cpu explicitly here.
         cpu.measure(); // inital measurement
         return cpu
@@ -57,7 +58,7 @@ impl Cpu {
         let now = Instant::now();
         let last_jiffies = self.total() - self.idle();
         unsafe {
-            super::gtop::glibtop_get_cpu(&mut self.cpu_handle); // update number of jiffies
+            gtop::glibtop_get_cpu(&mut self.cpu_handle); // update number of jiffies
         }
         let time_diff = now - self.last_time;
         let jiffy_diff = self.total() - self.idle() - last_jiffies;
@@ -110,7 +111,7 @@ impl Drop for Cpu {
     fn drop(&mut self) {
         if self.glibtop_handle.is_none() { // opening and closing glibtop manually
             unsafe {
-                super::gtop::glibtop_close();
+                gtop::glibtop_close();
             }
         }
     }
